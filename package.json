@@ -5,12 +5,14 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "build-pwa": "vue-cli-service build --prod && http-server -p 8080 -c-1 dist"
   },
   "dependencies": {
     "core-js": "^3.6.5",
     "register-service-worker": "^1.7.1",
-    "vue": "^2.6.11"
+    "vue": "^2.6.11",
+    "vue-json-pretty": "^1.8.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

@@ -9,6 +9,10 @@ npm install
 ```
 npm run serve
 ```
+### Run Pwa
+```
+npm run build-pwa
+```
 
 ### Compiles and minifies for production
 ```

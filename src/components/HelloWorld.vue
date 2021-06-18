@@ -1,122 +1,98 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br />
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
-        >vue-cli documentation</a
-      >.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel"
-          target="_blank"
-          rel="noopener"
-          >babel</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-pwa"
-          target="_blank"
-          rel="noopener"
-          >pwa</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li>
-        <a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a>
-      </li>
-      <li>
-        <a href="https://forum.vuejs.org" target="_blank" rel="noopener"
-          >Forum</a
-        >
-      </li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener"
-          >Community Chat</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener"
-          >Twitter</a
-        >
-      </li>
-      <li>
-        <a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a>
-      </li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener"
-          >vue-router</a
-        >
-      </li>
-      <li>
-        <a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-          rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+    <button @click="onClick">onClick</button>
+    <div v-if="device">
+      <h4>Device Info</h4>
+      <!-- <vue-json-pretty :path="'BluetoothDevice'" :data="device">
+      </vue-json-pretty> -->
+
+      <ul class="font-small">
+        <li>
+          ID --- <span class="font-bold">{{ device.id }}</span>
+        </li>
+        <li>
+          Name --- <span class="font-bold">{{ device.name }}</span>
+        </li>
+        <li>
+          Is Gatt Connected ---
+          <span class="font-bold">{{ device.gatt.connected }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
 <script>
+// import VueJsonPretty from "vue-json-pretty";
+import "vue-json-pretty/lib/styles.css";
+
 export default {
   name: "HelloWorld",
-  props: {
-    msg: String,
+  components: {
+    // VueJsonPretty,
+  },
+  data() {
+    return {
+      device: null,
+      test: null,
+    };
+  },
+  filters: {
+    pretty: function (value) {
+      return JSON.stringify(JSON.parse(value), null, 2);
+    },
+  },
+  methods: {
+    async onClick() {
+      try {
+        console.log("Requesting Bluetooth Device...");
+
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalService: ["battery_service"],
+        });
+
+        const server = await device.gatt.connect();
+        console.log(device);
+        this.device = device;
+
+        // console.log("after sever");
+        // console.log("> Name:             " + device.name);
+        // console.log("> Id:               " + device.id);
+        // console.log("> Connected:        " + device.gatt.connected);
+
+        const service = await server.getPrimaryService("battery_service");
+
+        // console.log("after service", server);
+
+        const characteristic = await service.getCharacteristic("battery_level");
+
+        characteristic.startNotifications();
+
+        // console.log("after characteristic", characteristic);
+
+        console.log("--------------------characteristic----------------------");
+        console.log(characteristic);
+        console.log("--------------------characteristic----------------------");
+
+        const reading = await characteristic.readValue();
+        console.log("after reading", reading);
+        console.log(reading.getUint8(0) + "%");
+      } catch (error) {
+        console.log("Argh! " + error);
+      }
+    },
   },
 };
+// 0000180f-0000-1000-8000-00805f9b34fb
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+.font-small {
+  font-size: 14px;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+.font-bold {
+  font-weight: bold;
 }
 </style>
